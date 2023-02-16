@@ -63,7 +63,8 @@ def dataFabric_api(request) :
             returnData = {
                 'status' : result['status'],
                 'column' : column,
-                'data' : data
+                'data' : data,
+                'type' : result['type']
             }
         elif result['status'] == 400 :
             returnData = result
@@ -73,7 +74,8 @@ def dataFabric_api(request) :
         if result['status'] == 200 :
             returnData = {
                 'status' : result['status'],
-                'data' : result['data']
+                'data' : result['data'],
+                'type' : result['type']
             }
         elif result['status'] == 400 :
             returnData = result

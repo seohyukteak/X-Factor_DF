@@ -19,11 +19,11 @@ def db_select(qry):
         print("===============================")
         print("Success")
         print("===============================")
-        data = {'status' : 200, 'data' : data}
+        data = {'status' : 200, 'data' : data, 'type' : 'select'}
     
     except Exception as e :
         if 'Failed to connect to Teradata Vantage' in str(e) :
-            data = {'status' : 404, 'data' : 'Failed to connect to Teradata Vantage'}
+            data = {'status' : 404, 'data' : 'Failed to connect to Teradata Vantage', 'type' : 'select'}
         
         else :
             if '[Error' in str(e) :
@@ -37,7 +37,7 @@ def db_select(qry):
                         continue
                     error_list[i] = 'at ' + error_list[i]
                 error_list.insert(0, error + ']')
-            data = {'status' : 400, 'data' : error_list}
+            data = {'status' : 400, 'data' : error_list, 'type' : 'select'}
         
     return  data
 
@@ -51,8 +51,7 @@ def db_create(qry):
         print("===============================")
         print("Success")
         print("===============================")
-        
-        data = {'status' : 200, 'data' : data}
+        data = {'status' : 200, 'data' : qry.splitlines(), 'type' : 'create'}
     except Exception as e :
         if 'Failed to connect to Teradata Vantage' in str(e) :
             data = {'status' : 404, 'data' : 'Failed to connect to Teradata Vantage'}
@@ -68,5 +67,5 @@ def db_create(qry):
                         continue
                     error_list[i] = 'at ' + error_list[i]
                 error_list.insert(0, error + ']')
-            data = {'status' : 400, 'data' : error_list}
+            data = {'status' : 400, 'data' : error_list, 'type' : 'create'}
     return data

@@ -109,35 +109,57 @@
                     $("#query_tbody").empty();
                     document.getElementById("query_stop").style.display = "none";
                     document.getElementById("query_start").style.display = "inline";
-                    if (res.status==200){
-                        var str = "";
-                        str += '<th>No.</th>'
-                        $.each(res.column, function(i){
-                            str += '<Th style="display: sticky; border:1px solid;"' + res.column[i]+ '">' + res.column[i]+ '</Th>'
-                        });
-                        $("#query_thead").append(str);
+                    document.getElementById("query_thead").style.fontSize = "10px";
+                    if (res.type == 'select'){
+                        if (res.status==200){
+                            var str = "";
+                            str += '<th>No.</th>'
+                            $.each(res.column, function(i){
+                                str += '<Th style="display: sticky; border:1px solid;"' + res.column[i]+ '">' + res.column[i]+ '</Th>'
+                            });
+                            $("#query_thead").append(str);
 
-                        var str = "";
-                        $.each(res.data, function(i){
-                            str += '<TR>'
-                            str += '<td class="text-center" style="border:1px solid;">'+ i +'</td>'
-                            for(var j = 0; j < res.data[i].length; j++){
-                                str += '<td style="border:1px solid; padding-left : 50px;">' + res.data[i][j] +'</td>'
-                            }
-                            str += '</TR>'
-                        });
-                        $("#query_tbody").html(str);
+                            var str = "";
+                            $.each(res.data, function(i){
+                                str += '<TR>'
+                                str += '<td class="text-center" style="border:1px solid;">'+ i +'</td>'
+                                for(var j = 0; j < res.data[i].length; j++){
+                                    str += '<td style="border:1px solid; padding-left : 50px;">' + res.data[i][j] +'</td>'
+                                }
+                                str += '</TR>'
+                            });
+                            $("#query_tbody").html(str);
+                            
                         
-                    
-                    }else if (res.status==400){
+                        }else if (res.status==400){
+                            $("#query_thead").empty();
+                            var str = "";
+                            $.each(res.data, function(i){
+                                str +=  res.data[i] + '</br>'
+                            });
+                            $("#query_thead").html(str);
+                        }
+                    }else if (res.type == 'create'){
                         $("#query_thead").empty();
-                        var str = "";
-                        $.each(res.data, function(i){
-                            str +=  res.data[i] + '</br>'
-                        });
-                        $("#query_thead").html(str);
+                        if (res.status==200){
+                            document.getElementById("query_thead").style.fontSize = "15px";
+                            var str = "";
+                            str += '</br>'
+                            $.each(res.data, function(i){
+                                str +=res.data[i] + '</br></br>'
+                            });
+                            
+                            $("#query_thead").html(str);
+                        }else if (res.status==400){
+                            var str = "";
+                            $.each(res.data, function(i){
+                                str +=  res.data[i] + '</br>'
+                            });
+                            $("#query_thead").html(str);
+                        }
                     }
                 },
+                
                 beforeSend: function() {
                     document.getElementById("query_stop").style.display = "inline";
                     document.getElementById("query_start").style.display = "none";
@@ -156,12 +178,6 @@
                     $("#query_tbody").html(str);
                 }
             });
-    $(function(){
-        $("#query_table").colResizable({
-            liveDrag:true,
-            resizeMode:'overflow'
-        });
-    });
     }
 </script>
 <!-- END content -->
