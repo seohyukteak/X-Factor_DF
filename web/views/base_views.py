@@ -46,9 +46,13 @@ def dataFabric_monitoring(request):
     returnData = {'menuList': menuListDB, 'Customer': Customer,}
     return render(request, 'dataFabric/monitoring_DF.html', returnData)
 
-def dataFabric_Navigator(request):
+def dataFabric_navigator(request):
     returnData = {'menuList': menuListDB, 'Customer': Customer,}
-    return render(request, 'dataFabric/Navigator_DF.html', returnData)
+    return render(request, 'dataFabric/navigator_DF.html', returnData)
+
+def dataFabric_setting(request):
+    returnData = {'menuList': menuListDB, 'Customer': Customer,}
+    return render(request, 'dataFabric/setting_DF.html', returnData)
 
 #################################### api ############################################
 @csrf_exempt

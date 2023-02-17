@@ -1,7 +1,7 @@
 import requests
 from django.shortcuts import render, redirect
+from teradataml.context.context import create_context, remove_context
 import hashlib
-import psycopg2
 import json
 
 with open("setting.json", encoding="UTF-8") as f:
@@ -14,9 +14,6 @@ DBUser = SETTING['DB']['DBUser']
 DBPwd = SETTING['DB']['DBPwd']
 UserTNM = SETTING['DB']['UserTNM']
 Login_Method = SETTING['PROJECT']['LOGIN']
-apiUrl = SETTING['API']['apiUrl']
-SesstionKeyPath = SETTING['API']['PATH']['SesstionKey']
-
 
 # hi
 
@@ -76,11 +73,12 @@ def login(request):
                     return render(request, 'common/login.html', res_data)
 
                 else:
-                    request.session['sessionid']=RS[1]
-                    request.session['sessionname'] = RS[3]
-                    request.session['sessionemail']=RS[5]
-                    return redirect('../dashboard')
-    elif Login_Method == "Tanium":
+                    # request.session['sessionid']=RS[1]
+                    # request.session['sessionname'] = RS[3]
+                    # request.session['sessionemail']=RS[5]
+                    return redirect('../webQuery_DF')
+
+    elif Login_Method == "Teradata":
         if request.method == 'GET':
             returnData = {'Login_Method': Login_Method}
             return render(request, 'common/login.html', returnData)
@@ -99,14 +97,16 @@ def login(request):
                 return render(request, 'common/login.html', res_data)
             # 모든 필드를 채웠을 경우
             else:
-                TRS = taniumUsers(user_id, user_pw)
-                if TRS == None:
+                RS = selectUsers(user_id, user_pw)
+                if RS == None:
                     res_data['error'] = '아이디 또는 비밀번호가 일치하지 않습니다'
                     return render(request, 'common/login.html', res_data)
                 else:
-                    request.session['sessionid']=user_id
-                    return redirect('../dashboard')
 
+                    request.session['sessionid'] = RS[1]
+                    request.session['sessionname'] = RS[3]
+                    request.session['sessionemail'] = RS[5]
+                    return redirect('../webQuery_DF')
 
 
 def updateform(request):
@@ -119,22 +119,22 @@ def updateform(request):
             user_id = request.POST.get('user_id')
             user_pw = request.POST.get('user_pw')
             hashpassword = hashlib.sha256(user_pw.encode()).hexdigest()
-            Conn = psycopg2.connect('host={0} port={1} dbname={2} user={3} password={4}'.format(DBHost, DBPort, DBName, DBUser, DBPwd))
-            Cur = Conn.cursor()
 
+            td_context = create_context(host=DBHost+":"+DBPort,username=DBUser, password=DBPwd)
             query ="""
                         select
                             *
                         from
-                            """ + UserTNM + """
+                            """+DBName+"""."""+ UserTNM + """
                         where
                             user_id = '""" + user_id + """'
                         and
                             user_pw = '""" + hashpassword + """'
     
                     """
-            Cur.execute(query)
-            RS = Cur.fetchall()
+            result=td_context.execute(query)
+            RS = result.fetchall()
+            remove_context()
             res_data = {}
             if RS[0] != None :
                 res_data['user_id'] = RS[0][1]
@@ -192,7 +192,7 @@ def update(request):
             if RS == "1" :
                 request.session['sessionname'] = user_name
                 request.session['sessionemail'] = user_email
-                return redirect('../dashboard')
+                return redirect('../webQuery_DF/')
             else :
                 res_data['error'] = '회원정보 변경이 실패했습니다.'
                 return render(request, 'common/update.html', res_data)
@@ -206,7 +206,7 @@ def logout(request):
             return render(request, 'common/login.html')
         else :
             return render(request, 'common/login.html')
-    elif Login_Method == "Tanium":
+    elif Login_Method == "Teradata":
         if request.method == 'GET':
             returnData = {'Login_Method': Login_Method}
             return render(request, 'common/login.html', returnData)
@@ -219,25 +219,23 @@ def logout(request):
 def selectUsers(user_id, user_pw):
     try:
         hashpassword = hashlib.sha256(user_pw.encode()).hexdigest()
-        #print(hashpassword)
-
-        Conn = psycopg2.connect('host={0} port={1} dbname={2} user={3} password={4}'.format(DBHost, DBPort, DBName, DBUser, DBPwd))
-        Cur = Conn.cursor()
+        td_context = create_context(host=DBHost+":"+DBPort,username=DBUser, password=DBPwd)
 
         query = """
             select 
                 *
             from
-                """ + UserTNM + """
+                """+DBName+"""."""+ UserTNM + """
             where
-                user_id = '""" + user_id + """'
+                web_user = '""" + user_id + """'
             and
-                user_pw = '""" + hashpassword + """'   
+                web_pw = '""" + hashpassword + """'   
 
             """
 
-        Cur.execute(query)
-        RS = Cur.fetchone()
+        result= td_context.execute(query)
+        RS = result.fetchone()
+        remove_context()
         #print(RS)
         return RS
     except:
@@ -247,8 +245,7 @@ def selectUsers(user_id, user_pw):
 def createUsers(user_id,user_pw,user_name,user_phone,user_email,user_dep,user_team,user_rank):
     try:
         hashpassword = hashlib.sha256(user_pw.encode()).hexdigest()
-        Conn = psycopg2.connect('host={0} port={1} dbname={2} user={3} password={4}'.format(DBHost, DBPort, DBName, DBUser, DBPwd))
-        Cur = Conn.cursor()
+        td_context = create_context(host=DBHost+":"+DBPort,username=DBUser, password=DBPwd)
         query =""" 
         INSERT INTO 
             web_user 
@@ -265,9 +262,9 @@ def createUsers(user_id,user_pw,user_name,user_phone,user_email,user_dep,user_te
                 '""" + user_rank + """' 
                 );
         """
-        Cur.execute(query)
-        Conn.commit()
-        Conn.close()
+        td_context.execute(query)
+        td_context.commit()
+        remove_context()
         a = "1"
         return a
     except:
@@ -279,8 +276,7 @@ def createUsers(user_id,user_pw,user_name,user_phone,user_email,user_dep,user_te
 def updateUsers(user_id,user_pw,user_name,user_phone,user_email,user_dep,user_team,user_rank):
     try:
         hashpassword = hashlib.sha256(user_pw.encode()).hexdigest()
-        Conn = psycopg2.connect('host={0} port={1} dbname={2} user={3} password={4}'.format(DBHost, DBPort, DBName, DBUser, DBPwd))
-        Cur = Conn.cursor()
+        td_context = create_context(host=DBHost+":"+DBPort,username=DBUser, password=DBPwd)
         query = """ 
         UPDATE
             web_user 
@@ -296,31 +292,12 @@ def updateUsers(user_id,user_pw,user_name,user_phone,user_email,user_dep,user_te
             user_id = '""" + user_id + """';
         """
         #print(query)
-        Cur.execute(query)
-        Conn.commit()
-        Conn.close()
+        td_context.execute(query)
+        td_context.commit()
+        remove_context()
         a = "1"
         return a
     except:
         print(UserTNM + ' Table connection(Update) Failure')
         a = "0"
         return a
-
-
-def taniumUsers(user_id, user_pw):
-    try:
-        path = SesstionKeyPath
-        urls = apiUrl+path
-        headers = '{"username" : "'+user_id+'","domain":"",  "password":"'+user_pw+'"}'
-        response = requests.post(urls, data=headers, verify=False)
-        code= response.status_code
-        if code==200:
-            a = response.json()
-            sessionKey = a['data']['session']
-            returnList = sessionKey
-            return returnList
-        elif code==403 :
-            print()
-
-    except ConnectionError as e:
-        print(e)

@@ -1,7 +1,7 @@
 {
   "PROJECT" : {
-    "CORE" : "Tanium",
-    "LOGIN" : "WEB",
+    "CORE" : "Teradata",
+    "LOGIN" : "Teradata",
     "CUSTOMER" : "Xfactor",
     "TYPE" : "System",
     "LOG" : {
@@ -52,15 +52,15 @@
   },
   "DB" : {
     "DBHost" : "1.223.168.93",
-    "DBPort" : "40011",
-    "DBName" : "postgres",
-    "DBUser" : "postgres",
-    "DBPwd" : "psql",
+    "DBPort" : "44240",
+    "DBName" : "xfactor",
+    "DBUser" : "dbc",
+    "DBPwd" : "dbc",
     "DBSelectTime" : 5,
     "AssetTNM" : "daily_asset",
     "StatisticsTNM" : "daily_statistics",
-    "MenuTNM": "web_menusetting",
-    "UserTNM": "web_user"
+    "MenuTNM": "menusetting_tera",
+    "UserTNM": "user_tera"
   },
   "FILE" : {
     "asset": {

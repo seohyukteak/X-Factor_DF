@@ -1,6 +1,7 @@
-import psycopg2
+
 import json
 import pandas as pd
+from teradataml.context.context import create_context, remove_context
 from datetime import datetime, timedelta
 
 with open("setting.json", encoding="UTF-8") as f:
@@ -17,24 +18,21 @@ MenuTNM = SETTING['DB']['MenuTNM']
 def MenuSetting():
     try:
         MSDL = []
-        Conn = psycopg2.connect('host={0} port={1} dbname={2} user={3} password={4}'.format(DBHost, DBPort, DBName, DBUser, DBPwd))
-        Cur = Conn.cursor()
-
+        td_context = create_context(host=DBHost+":"+DBPort,username=DBUser, password=DBPwd)
         query = """
             select 
                 *
             from
-                """ + MenuTNM + """
+                """+DBName+"""."""+ MenuTNM + """
 
             """
+        result=td_context.execute(query)
 
-        Cur.execute(query)
-        RS = Cur.fetchall()
+        RS = result.fetchall()
+        remove_context()
         # for R in RS:
         #     MSDL.append(R)
         # return MSDL
-
-        #print(RS)
         DFL=[]
         for d in RS:
             ID = d[0]
